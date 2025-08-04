@@ -5,54 +5,80 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
+using Microsoft.Data.Sqlite;
 
-var builder = WebApplication.CreateBuilder(args);
+public partial class Program {
 
-// Add services to the container.
-
-builder.Services.AddControllers()
-    .AddJsonOptions(options =>
+    public static void Main(string[] args)
     {
-        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
-    });
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+        var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddDbContext<EntityApiDbContext>(options => 
-    options.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
+        // Add services to the container.
 
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.TokenValidationParameters = new TokenValidationParameters
+        builder.Services.AddControllers()
+            .AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+            });
+        // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+        builder.Services.AddOpenApi();
+
+        if (builder.Environment.IsEnvironment("Testing"))
         {
-            ValidateIssuer = true,
-            ValidIssuer = builder.Configuration["AppSettings:Issuer"],
-            ValidateAudience = true,
-            ValidAudience = builder.Configuration["AppSettings:Audience"],
-            ValidateLifetime = true,
-            IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(builder.Configuration["AppSettings:Token"]!)
-            ),
-            ValidateIssuerSigningKey = true
-        };
-    });
+            // Use SQLite in-memory for testing
+            var connection = new SqliteConnection("Filename=:memory:");
+            connection.Open();  // Important: keep open for lifetime of app
 
-builder.Services.AddScoped<IAuthService, AuthService>();
+            builder.Services.AddDbContext<EntityApiDbContext>(options =>
+            {
+                options.UseSqlite(connection);
+            });
 
-var app = builder.Build();
+        }
+        else
+        {
+            builder.Services.AddDbContext<EntityApiDbContext>(options => 
+                options.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
+            
+        }
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-    app.MapScalarApiReference();
+
+        builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidIssuer = builder.Configuration["AppSettings:Issuer"],
+                    ValidateAudience = true,
+                    ValidAudience = builder.Configuration["AppSettings:Audience"],
+                    ValidateLifetime = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(
+                        Encoding.UTF8.GetBytes(builder.Configuration["AppSettings:Token"]!)
+                    ),
+                    ValidateIssuerSigningKey = true
+                };
+            });
+
+        builder.Services.AddScoped<IAuthService, AuthService>();
+
+        var app = builder.Build();
+
+        // Configure the HTTP request pipeline.
+        if (app.Environment.IsDevelopment())
+        {
+            app.MapOpenApi();
+            app.MapScalarApiReference();
+        }
+
+        app.UseHttpsRedirection();
+
+        app.UseAuthorization();
+
+        app.MapControllers();
+
+        app.Run();
+    }
+
+
 }
-
-app.UseHttpsRedirection();
-
-app.UseAuthorization();
-
-app.MapControllers();
-
-app.Run();
