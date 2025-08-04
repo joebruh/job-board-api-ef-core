@@ -39,7 +39,7 @@ public class RegisterDto : IValidatableObject
         if (role == "company")
         {
             if (string.IsNullOrWhiteSpace(CompanyName))
-                yield return new ValidationResult("CompanyName is required for companies.", new[] { nameof(CompanyName) });
+                yield return new ValidationResult("Company Name is required for companies.", new[] { nameof(CompanyName) });
 
             if (string.IsNullOrWhiteSpace(Description))
                 yield return new ValidationResult("Description is required for companies.", new[] { nameof(Description) });

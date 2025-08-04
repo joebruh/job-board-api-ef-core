@@ -23,7 +23,7 @@ public partial class Program {
         // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
         builder.Services.AddOpenApi();
 
-        if (builder.Environment.IsEnvironment("Testing"))
+        if (builder.Environment.IsEnvironment("TestingSQLite"))
         {
             // Use SQLite in-memory for testing
             var connection = new SqliteConnection("Filename=:memory:");
@@ -35,11 +35,17 @@ public partial class Program {
             });
 
         }
+        else if (builder.Environment.IsEnvironment("TestingMSSQL"))
+        {
+            builder.Services.AddDbContext<EntityApiDbContext>(options =>
+                options.UseSqlServer(builder.Configuration.GetConnectionString("Testing")));
+            
+        }
         else
         {
-            builder.Services.AddDbContext<EntityApiDbContext>(options => 
+            builder.Services.AddDbContext<EntityApiDbContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
-            
+
         }
 
 
@@ -63,6 +69,17 @@ public partial class Program {
         builder.Services.AddScoped<IAuthService, AuthService>();
 
         var app = builder.Build();
+
+        // In a testing environment, refresh the database
+        if (builder.Environment.IsEnvironment("TestingSQLite") || builder.Environment.IsEnvironment("TestingMSSQL"))
+        {
+            using (var scope = app.Services.CreateScope())
+            {
+                var db = scope.ServiceProvider.GetRequiredService<EntityApiDbContext>();
+                db.Database.EnsureDeleted();
+                db.Database.EnsureCreated();
+            }
+        }
 
         // Configure the HTTP request pipeline.
         if (app.Environment.IsDevelopment())
