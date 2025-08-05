@@ -68,6 +68,9 @@ public partial class Program {
 
         builder.Services.AddScoped<IAuthService, AuthService>();
 
+        builder.Services.AddHttpContextAccessor();
+        builder.Services.AddScoped<IJobPostService, JobPostService>();
+
         var app = builder.Build();
 
         // In a testing environment, refresh the database

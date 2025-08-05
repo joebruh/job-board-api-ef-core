@@ -4,6 +4,7 @@ using EntityApi.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EntityApi.Data.Migrations
 {
     [DbContext(typeof(EntityApiDbContext))]
-    partial class EntityApiDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250805013641_AddDeletedAtToJobPosts")]
+    partial class AddDeletedAtToJobPosts
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

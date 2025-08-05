@@ -9,6 +9,7 @@ public class EntityApiDbContext(DbContextOptions<EntityApiDbContext> options) : 
     public DbSet<User> Users { get; set; }
     public DbSet<CandidateProfile> CandidateProfiles { get; set; }
     public DbSet<CompanyProfile> CompanyProfiles { get; set; }
+    public DbSet<JobPost> JobPosts { get; set; }
 
 
 }

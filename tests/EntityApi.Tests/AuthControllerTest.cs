@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 
+namespace EntityApi.Tests;
 
 public class AuthControllerTests : IClassFixture<WebApplicationFactory<Program>>
 {

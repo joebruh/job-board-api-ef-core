@@ -11,8 +11,7 @@ public class CompanyProfile
 
     // Navigation
     public User User { get; set; } = null!;
-
-    // public ICollection<Job> Jobs { get; set; } = new List<Job>();
+    public List<JobPost> JobPosts { get; set; } = new();
 
 
 }
