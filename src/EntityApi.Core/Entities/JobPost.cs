@@ -7,6 +7,7 @@ public class JobPost
     public int Id { get; set; }
     public Guid CompanyProfileId { get; set; }
     public string Title { get; set; } = string.Empty;
+    public string Slug { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public DateTime? PublishedAt { get; set; }
     public DateTime CreatedAt { get; set; }

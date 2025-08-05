@@ -70,6 +70,7 @@ public partial class Program {
 
         builder.Services.AddHttpContextAccessor();
         builder.Services.AddScoped<IJobPostService, JobPostService>();
+        builder.Services.AddScoped<ISearchService, SearchService>();
 
         var app = builder.Build();
 

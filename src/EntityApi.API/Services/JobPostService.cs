@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EntityApi.API.Services;
 
-public class JobPostService: IJobPostService
+public class JobPostService : IJobPostService
 {
     private readonly EntityApiDbContext _context;
     private readonly IHttpContextAccessor _httpContextAccessor;
