@@ -155,6 +155,7 @@ public class ApplicationControllerTest : IClassFixture<WebApplicationFactory<Pro
             JobPostId = jobs[0].Id,
             CandidateProfileId = candidate.Id,
             ResumeLink = "A sample link",
+            CoverLetter = "A sample cover letter",
             CreatedAt = DateTime.UtcNow,
         };
 
@@ -171,7 +172,96 @@ public class ApplicationControllerTest : IClassFixture<WebApplicationFactory<Pro
 
         Assert.NotNull(content);
         Assert.Equal(application.ResumeLink, content.ResumeLink);
+        Assert.Equal(application.CoverLetter, content.CoverLetter);
         Assert.Equal(application.Status, content.Status);
+    }
+
+    [Fact]
+    public async Task Company_Can_Get_Application()
+    {
+
+        using var scope = CreateScope();
+        var db = GetDbContext(scope);
+
+        var user = new User();
+        user.Id = Guid.NewGuid();
+        user.Username = "company_username";
+        user.PasswordHash = new PasswordHasher<User>()
+            .HashPassword(user, "sample");
+        user.Role = "Company";
+
+        db.Users.Add(user);
+
+        var company = new CompanyProfile
+        {
+            Id = Guid.NewGuid(),
+            UserId = user.Id,
+            Name = "Acme Corp",
+            Description = "Example Company"
+        };
+
+        db.CompanyProfiles.Add(company);
+
+        var slugHelper = new SlugHelper();
+
+        var jobs = new Faker<JobPost>()
+            .RuleFor(j => j.Title, f => f.Name.JobTitle())
+            .RuleFor(j => j.Slug, f => slugHelper.GenerateSlug(f.Name.JobTitle()))
+            .RuleFor(j => j.Description, f => f.Lorem.Paragraph())
+            .RuleFor(j => j.CompanyProfileId, f => company.Id)
+            .RuleFor(j => j.PublishedAt, DateTime.UtcNow)
+            .RuleFor(j => j.CreatedAt, DateTime.UtcNow)
+            .RuleFor(j => j.UpdatedAt, DateTime.UtcNow)
+            .Generate(1);
+
+        db.JobPosts.AddRange(jobs);
+
+        await db.SaveChangesAsync();
+
+        var user2 = new User();
+        user2.Id = Guid.NewGuid();
+        user2.Username = "candidate_username";
+        user2.PasswordHash = new PasswordHasher<User>()
+            .HashPassword(user2, "sample");
+        user2.Role = "Company";
+
+        db.Users.Add(user2);
+
+        var candidate = new CandidateProfile
+        {
+            Id = Guid.NewGuid(),
+            UserId = user2.Id,
+            Name = "Candidate Guy",
+            Email = "candidate@test.com",
+            Phone = "0404040404"
+        };
+
+        db.CandidateProfiles.Add(candidate);
+
+        var application = new Application
+        {
+            JobPostId = jobs[0].Id,
+            CandidateProfileId = candidate.Id,
+            ResumeLink = "A sample resume link",
+            CoverLetter = "A sample cover letter from candidate",
+            CreatedAt = DateTime.UtcNow,
+        };
+
+        db.Applications.Add(application);
+
+        await db.SaveChangesAsync();
+
+        await AuthHelper.AuthenticateAsCompanyAsync(_client, "company_username", "sample");
+
+        var response = await _client.GetAsync($"/api/view-application/{application.Id}");
+        response.EnsureSuccessStatusCode();
+
+        var content = await response.Content.ReadFromJsonAsync<ViewApplicationDto>();
+
+        Assert.NotNull(content);
+        Assert.Equal(application.ResumeLink, content.ResumeLink);
+        Assert.Equal(application.CoverLetter, content.CoverLetter);
+        Assert.Equal("Viewed", content.Status);
     }
 
 }

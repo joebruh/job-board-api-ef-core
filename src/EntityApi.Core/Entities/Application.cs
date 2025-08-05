@@ -9,7 +9,7 @@ public class Application
     public int JobPostId { get; set; }
     public string ResumeLink { get; set; } = string.Empty;
     public string CoverLetter { get; set; } = string.Empty;
-    public string? Status { get; set; } = string.Empty;
+    public string? Status { get; set; }
     public DateTime CreatedAt { get; set; }
 
 

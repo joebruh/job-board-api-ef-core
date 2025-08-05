@@ -52,8 +52,8 @@ public class ApplicationService : IApplicationService
 
     public async Task<ViewApplicationDto?> ViewApplication(int applicationId)
     {
-        Guid? candidateProfileId = (await _loggedInUserService.GetCurrentUserCandidateIdAsync()).GetValueOrDefault();
-        Guid? companyProfileId = (await _loggedInUserService.GetCurrentUserCompanyIdAsync()).GetValueOrDefault();
+        Guid? candidateProfileId = await _loggedInUserService.GetCurrentUserCandidateIdAsync();
+        Guid? companyProfileId = await _loggedInUserService.GetCurrentUserCompanyIdAsync();
 
         var application = await _context.Applications
             .Include(a => a.JobPost)
