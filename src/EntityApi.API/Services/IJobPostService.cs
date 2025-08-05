@@ -6,6 +6,7 @@ namespace EntityApi.API.Services;
 
 public interface IJobPostService
 {
+    Task<List<JobPostResponseDto>> ListJobs();
     Task<JobPost> PostJob(JobPostDto request);
     Task<JobPost?> UpdateJob(int id, JobPostDto request);
     Task<bool> DeleteJob(int id);

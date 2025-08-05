@@ -11,10 +11,24 @@ namespace EntityApi.API.Controllers;
 [ApiController]
 public class JobPostController(IJobPostService jobPostService) : ControllerBase
 {
-    [HttpPost("post")]
+    [HttpGet]
+    public async Task<ActionResult<List<JobPostDto>>> ListJobs()
+    {
+        return Ok(await jobPostService.ListJobs());
+    }
+
+    [HttpPost]
     public async Task<ActionResult<JobPost>> PostJob(JobPostDto request)
     {
         var jobPost = await jobPostService.PostJob(request);
+
+        return Ok(jobPost);
+    }
+
+    [HttpGet("{id}")]
+    public async Task<ActionResult<JobPost>> GetJob(int id, JobPostDto request)
+    {
+        var jobPost = await jobPostService.UpdateJob(id, request);
 
         return Ok(jobPost);
     }

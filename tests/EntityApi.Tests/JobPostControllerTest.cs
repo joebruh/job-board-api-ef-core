@@ -1,11 +1,9 @@
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
-using System.Net;
-using Microsoft.AspNetCore.Mvc;
 using EntityApi.Data;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
-using System.Text.Json;
+using EntityApi.API.Models;
 
 namespace EntityApi.Tests;
 
@@ -39,8 +37,7 @@ public class JobPostControllerTest : IClassFixture<WebApplicationFactory<Program
             PublishNow = false
         };
 
-        // Register
-        var postJob = await _client.PostAsJsonAsync("/api/JobPost/post", payload);
+        var postJob = await _client.PostAsJsonAsync("/api/JobPost", payload);
         postJob.EnsureSuccessStatusCode();
 
         using var scope = CreateScope();
@@ -55,6 +52,37 @@ public class JobPostControllerTest : IClassFixture<WebApplicationFactory<Program
     }
 
     [Fact]
+    public async Task Company_Can_List_Their_Jobs()
+    {
+        await AuthHelper.AuthenticateAsCompanyAsync(_client, "company", "secret123");
+
+        // TODO generate job posts without using endpoints
+
+        // 1
+        await _client.PostAsJsonAsync("/api/JobPost", new
+        {
+            Title = "A Job Test",
+            Description = "This is a job description",
+            PublishNow = false
+        });
+
+        // 2
+        await _client.PostAsJsonAsync("/api/JobPost", new
+        {
+            Title = "Another Job Test",
+            Description = "This is a job description",
+            PublishNow = false
+        });
+
+        var response = await _client.GetAsync("/api/JobPost");
+
+        response.EnsureSuccessStatusCode();
+
+        var data = await response.Content.ReadFromJsonAsync<List<JobPostResponseDto>>();
+        Assert.Equal(2, data.Count);
+    }
+
+    [Fact]
     public async Task Company_Can_Update_Job()
     {
         await AuthHelper.AuthenticateAsCompanyAsync(_client, "user1", "secret123");
@@ -65,7 +93,6 @@ public class JobPostControllerTest : IClassFixture<WebApplicationFactory<Program
             Description = "Updated job description",
         };
 
-        // Register
         var postJob = await _client.PutAsJsonAsync("/api/JobPost/1", payload);
         postJob.EnsureSuccessStatusCode();
 
@@ -86,7 +113,6 @@ public class JobPostControllerTest : IClassFixture<WebApplicationFactory<Program
     {
         await AuthHelper.AuthenticateAsCompanyAsync(_client, "user1", "secret123");
 
-        // Register
         var postJob = await _client.DeleteAsync("/api/JobPost/1");
         postJob.EnsureSuccessStatusCode();
 

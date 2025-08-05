@@ -34,7 +34,7 @@ public static class AuthHelper
         login.EnsureSuccessStatusCode();
 
         var json = await login.Content.ReadFromJsonAsync<JsonElement>();
-        var token = json.GetProperty("token").GetString();
+        var token = json.GetProperty("accessToken").GetString();
 
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
     }

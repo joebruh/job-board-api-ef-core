@@ -16,11 +16,26 @@ public class JobPostService: IJobPostService
         _httpContextAccessor = httpContextAccessor;
     }
 
+    public async Task<List<JobPostResponseDto>> ListJobs()
+    {
+        var companyProfileId = await GetCurrentUserCompanyIdAsync();
+
+        return await _context.JobPosts
+            .Where(j => j.DeletedAt == null)
+            .Where(j => j.CompanyProfileId == companyProfileId)
+            .Select(j => new JobPostResponseDto
+            {
+                Title = j.Title,
+                Description = j.Description,
+                PublishedAt = j.PublishedAt,
+                UpdatedAt = j.UpdatedAt
+            })
+            .ToListAsync();
+    }
+
     private async Task<Guid> GetCurrentUserCompanyIdAsync()
     {
         var userId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-        // if (string.IsNullOrEmpty(userId)) return null;
 
         var user = await _context.Users
             .Include(u => u.CompanyProfile)
