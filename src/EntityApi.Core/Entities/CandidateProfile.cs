@@ -13,5 +13,5 @@ public class CandidateProfile
     // Navigation
     public User User { get; set; } = null!;
 
-    // public ICollection<Application> Applications { get; set; } = new List<Application>();
+    public List<Application> Applications { get; set; } = new ();
 }

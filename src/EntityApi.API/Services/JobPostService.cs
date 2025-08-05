@@ -10,15 +10,18 @@ public class JobPostService : IJobPostService
 {
     private readonly EntityApiDbContext _context;
     private readonly IHttpContextAccessor _httpContextAccessor;
-    public JobPostService(EntityApiDbContext context, IHttpContextAccessor httpContextAccessor)
+    private readonly ILoggedInUserService _loggedInUserService;
+
+    public JobPostService(EntityApiDbContext context, IHttpContextAccessor httpContextAccessor, ILoggedInUserService loggedInUserService)
     {
         _context = context;
         _httpContextAccessor = httpContextAccessor;
+        _loggedInUserService = loggedInUserService;
     }
 
     public async Task<List<JobPostResponseDto>> ListJobs()
     {
-        var companyProfileId = await GetCurrentUserCompanyIdAsync();
+        Guid companyProfileId = (await _loggedInUserService.GetCurrentUserCompanyIdAsync()).Value;
 
         return await _context.JobPosts
             .Where(j => j.DeletedAt == null)
@@ -33,22 +36,11 @@ public class JobPostService : IJobPostService
             .ToListAsync();
     }
 
-    private async Task<Guid> GetCurrentUserCompanyIdAsync()
-    {
-        var userId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-        var user = await _context.Users
-            .Include(u => u.CompanyProfile)
-            .FirstOrDefaultAsync(u => u.Id.ToString() == userId);
-
-        return user.CompanyProfile.Id;
-    }
-
     public async Task<JobPost> PostJob(JobPostDto request)
     {
 
         var jobPost = new JobPost();
-        jobPost.CompanyProfileId = await GetCurrentUserCompanyIdAsync();
+        jobPost.CompanyProfileId = (await _loggedInUserService.GetCurrentUserCompanyIdAsync()).Value;
         jobPost.Title = request.Title;
         jobPost.Description = request.Description;
         jobPost.PublishedAt = request.PublishNow ? DateTime.UtcNow : null;

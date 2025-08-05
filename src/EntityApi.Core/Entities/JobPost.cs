@@ -16,4 +16,5 @@ public class JobPost
 
 
     public CompanyProfile CompanyProfile { get; set; } = default!;
+    public List<Application> Applications { get; set; } = default!;
 }

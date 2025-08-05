@@ -71,6 +71,8 @@ public partial class Program {
         builder.Services.AddHttpContextAccessor();
         builder.Services.AddScoped<IJobPostService, JobPostService>();
         builder.Services.AddScoped<ISearchService, SearchService>();
+        builder.Services.AddScoped<IApplicationService, ApplicationService>();
+        builder.Services.AddScoped<ILoggedInUserService, LoggedInUserService>();
 
         var app = builder.Build();
 
